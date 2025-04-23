@@ -15,3 +15,9 @@ spago install web-intersection-observer
 ## Documentation
 
 Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-web-intersection-observer).
+
+## Alternatives
+
+1. https://github.com/grybiena/intersection-observer
+   - this packages uses Options, we use `defaultIntersectionObserverInit`
+   - `purescript-web-intersection-observer` is more complete (for now, ChatGPT says)

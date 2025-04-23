@@ -1,17 +1,17 @@
-module Web.IntersectionObserverEntry where
+module Web.IntersectionObserver.Entry.Safe where
 
 import Prelude
 
 import Data.Maybe (Maybe)
-import Data.Nullable (Nullable, toMaybe)
+import Data.Nullable (Nullable)
+import Data.Nullable as Nullable
 import Effect (Effect)
 import Effect.Uncurried as EFn
 import Web.DOM as Web.DOM
+import Web.IntersectionObserver.Entry.Unsafe as Unsafe
+import Web.IntersectionObserver.Entry.Unsafe (DOMRectInit, DOMHighResTimeStamp, IntersectionObserverEntry)
 
--- from https://w3c.github.io/IntersectionObserver/#intersection-observer-entry
-
-type DOMHighResTimeStamp = Number
-
+-- https://drafts.fxtf.org/geometry-1/#domrectreadonly
 type DOMRectReadOnly =
   { x :: Number
   , y :: Number
@@ -23,36 +23,27 @@ type DOMRectReadOnly =
   , left :: Number
   }
 
-type DOMRectInit =
-  { x :: Number
-  , y :: Number
-  , width :: Number
-  , heigth :: Number
-  }
-
-
 type IntersectionObserverEntryInit =
-  { time :: DOMHighResTimeStamp
-  , rootBounds :: Nullable DOMRectInit
-  , boundingClientRect :: DOMRectInit
+  { boundingClientRect :: DOMRectInit
   , intersectionRect :: DOMRectInit
-  , isIntersecting :: Boolean
   , intersectionRatio :: Number
+  , isIntersecting :: Boolean
+  , rootBounds :: Maybe DOMRectInit
+  , time :: DOMHighResTimeStamp
   , target :: Web.DOM.Element
   }
 
-data IntersectionObserverEntry
-
-foreign import _create :: EFn.EffectFn1 IntersectionObserverEntryInit IntersectionObserverEntry
-
+-- Who can ever need it? Mocking lib https://github.com/w3c/IntersectionObserver/issues/33#issuecomment-146248475
 create :: IntersectionObserverEntryInit -> Effect IntersectionObserverEntry
-create = EFn.runEffectFn1 _create
+create options = EFn.runEffectFn1 Unsafe._create (options { rootBounds = Nullable.toNullable options.rootBounds })
+
+---------------- https://w3c.github.io/IntersectionObserver/#intersection-observer-entry
 
 foreign import time :: IntersectionObserverEntry -> DOMHighResTimeStamp
 foreign import _rootBounds :: IntersectionObserverEntry -> Nullable DOMRectReadOnly
 
 rootBounds :: IntersectionObserverEntry -> Maybe DOMRectReadOnly
-rootBounds = toMaybe <<< _rootBounds
+rootBounds = Nullable.toMaybe <<< _rootBounds
 
 foreign import boundingClientRect :: IntersectionObserverEntry -> DOMRectReadOnly
 foreign import intersectionRect :: IntersectionObserverEntry -> DOMRectReadOnly
